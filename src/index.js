@@ -13,6 +13,25 @@ dotenv.config({
 }); // Load environment variables from .env file
 
 connectDB() // Connect to the MongoDB database using Mongoose
+.then(()=> { // Start the server only after successful database connection
+  // Handle application-level errors
+  app.on("error", (error) => {
+    console.log("ERRR: ", error);
+    throw error;
+});
+
+    app.listen(process.env.PORT || 8000, () => {
+        console.log(`Server is running at port : ${process.env.PORT}`);
+    } )
+})
+.catch((err) => {
+    console.log("Mongo db connection failed !!!", err);
+    
+})
+
+
+
+
 
 
 /*
