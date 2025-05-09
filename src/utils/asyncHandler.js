@@ -7,6 +7,8 @@
 const asyncHandler = (requestHandler) => {
     (req,res,next) => {
         Promise.resolve(requestHandler(req,res,next)).catch((err) => next(err))
+    //error, request, response, next
+    //next is a function that is used to pass control to the next middleware function in the stack
     }
 }
 
