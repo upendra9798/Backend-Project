@@ -5,6 +5,7 @@
 //another way to use dotenv
 import dotenv from "dotenv"; // Import dotenv to load environment variables
 import connectDB from "./db/index.js"; //sometimes have to use .js extension while importing
+import { app } from "./app.js";
 // Import the connectDB function to establish a database connection
 
 //have to make changes in pakage.json

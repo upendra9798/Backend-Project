@@ -8,7 +8,7 @@ const userSchema = new Schema(
             type: String,
             required: true,
             unique: true,
-            lowecase: true,
+            lowercase: true,
             trim: true,
             index: true
         },
@@ -16,7 +16,7 @@ const userSchema = new Schema(
             type: String,
             required: true,
             unique: true,
-            lowecase: true,
+            lowercase: true,
             trim: true,
         },
         fullname: {
@@ -34,7 +34,7 @@ const userSchema = new Schema(
         },
         watchHistory:[
             {
-                type: Schema.Types.objectId,
+                type: Schema.Types.ObjectId,
                 ref: "Video"
             }
         ],
@@ -55,7 +55,7 @@ const userSchema = new Schema(
 userSchema.pre("save", async function(next) {
     if (!this.isModified("password")) return next(); //without this line, it will hash the password every time we update the user
     //if the password is not modified, then it will not hash the password again and again
-    this.password = bcrypt.hash(this.password, 10); //hashing the password with 10 salt rounds
+    this.password = await bcrypt.hash(this.password, 10); //hashing the password with 10 salt rounds
     next(); //call the next middleware function in the stack
 })
 //here we are using bcrypt to hash(encrypt) the password before saving it to the database

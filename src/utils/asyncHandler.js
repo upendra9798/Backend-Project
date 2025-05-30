@@ -5,7 +5,7 @@
 //next is a function that is used to pass control to the next middleware function in the stack
 //middleware is a type of checkpoint in the request-response cycle of an Express application(for ex checking authentication, logging, etc.)
 const asyncHandler = (requestHandler) => {
-    (req,res,next) => {
+    return (req,res,next) => {
         Promise.resolve(requestHandler(req,res,next)).catch((err) => next(err))
     //error, request, response, next
     //next is a function that is used to pass control to the next middleware function in the stack

@@ -7,3 +7,6 @@ class ApiResponse {
         //if >400 then it is an error and go through APIError class
     }
 }
+
+export { ApiResponse };
+// This class is used to create a standardized API response format
