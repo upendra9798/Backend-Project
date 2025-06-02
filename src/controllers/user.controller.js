@@ -202,7 +202,7 @@ const refreshAccessToken = asyncHandler(async(req,res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken 
 //body-when using mobile app, cookies-when using web app
 
-if(incomingRefreshToken){ 
+if(!incomingRefreshToken){ 
     throw new ApiError(400, "Refresh token is required")
 }
 
