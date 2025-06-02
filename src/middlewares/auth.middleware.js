@@ -14,8 +14,13 @@ export const verifyJWT = asyncHandler(async(req,res, next) => {
      }
  
      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+     //jwt.verify() is used to verify the token and decode it
+     //it takes the token and the secret key as arguments
+     //it decodes the token as it is encoded with the secret key
+     //  and we can access the user information from the decoded token only
  
-     const user = await User.findById(decodedToken.id).select("-password -refreshToken")
+     const user = await User.findById(decodedToken._id).select("-password -refreshToken") //._id -> _ is important before id,
+     //  it is a convention in mongoose to use _id for the primary key
  
      if(!user) {
          throw new ApiError(404, "Invalid access token")

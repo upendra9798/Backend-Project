@@ -66,7 +66,7 @@ userSchema.methods.isPasswordCorrect = async function(password){
 //it is an async function so we are using await here
 }
 
-userSchema.methods.generateAcessToken = function(){
+userSchema.methods.generateAccessToken = function(){
     return jwt.sign( //* we are using jwt to create token(like access token and refresh token) token-based authentication */
         {
             _id: this._id,//this._id is the id of the user in the database
@@ -98,3 +98,14 @@ userSchema.methods.generateRefreshToken = function(){//refresh token is used to 
 
 
 export const User = mongoose.model('User', userSchema);
+
+/*
+User logs in → gets access token + refresh token.
+
+Access token is used to make API requests.
+
+When the access token expires, the app uses the refresh token to get a 
+new one.
+
+User continues seamlessly without logging in again.
+*/
