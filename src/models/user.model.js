@@ -19,7 +19,7 @@ const userSchema = new Schema(
             lowercase: true,
             trim: true,
         },
-        fullname: {
+        fullName: {
             type: String,
             required: true,
             trim: true,
@@ -81,7 +81,7 @@ userSchema.methods.generateAcessToken = function(){
     )
 }
 
-userSchema.methods.generateRefreshToken = function(){
+userSchema.methods.generateRefreshToken = function(){//refresh token is used to get a new access token when the access token expires
     return jwt.sign( //* we are using jwt to create token(like access token and refresh token) token-based authentication */
         {
             _id: this._id,//this._id is the id of the user in the database

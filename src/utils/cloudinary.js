@@ -24,7 +24,8 @@ import fs from 'fs'; // File system module to handle file operations(built-in mo
                 resource_type: 'auto', // Automatically detect the resource type (image or video)
             })
             // file has been uploaded successfully on cloudinary
-            console.log("file is uploaded on cloudinary", response.url);
+            // console.log("file is uploaded on cloudinary", response.url);
+            fs.unlinkSync(localFilePath); // Delete the local saved temporary file after upload
             return response ; // Return the URL of the uploaded file
             
         } catch (error) {
