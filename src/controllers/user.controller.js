@@ -275,7 +275,9 @@ const changeCurrentPassword = asyncHandler(async(req,res) => {
 const getCurrentUser = asyncHandler(async(req,res) => {
     return res
     .status(200)
-    .json(200,req.user,"current user fetched successfully")
+    .json(
+        new ApiResponse(200,req.user,"current user fetched successfully")
+    )
 })
 
 const updateAccountDetails = asyncHandler(async(req,res) => {
@@ -285,7 +287,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
         throw new ApiError(400,"All fields are required")
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
@@ -352,9 +354,10 @@ const updateUserCoverImage = asyncHandler(async(req,res) => {
     }
 
     const user = await User.findByIdAndUpdate(
+        req.user?._id,
         {
             $set:{
-                coverImage:coverImage.url
+                coverImage:coverImage.url3
             }
         },
         {new:true}
@@ -366,6 +369,87 @@ const updateUserCoverImage = asyncHandler(async(req,res) => {
         new ApiResponse(200,user,"Cover image updated successfully")
     )
 })
+
+//Aggregation pipelines
+const getUserChannelProfile = asyncHandler(async(req,res) => {
+    const {username} = req.params //taking from link(profile)-params
+
+    if(!username?.trim()){//trim() is used to remove whitespace from both ends of a string
+        throw new ApiError(400,"username is missing")
+    }
+
+    //aggregate is a mongoose method that allows us to perform complex queries on the database
+    //it is used to join multiple collections and perform operations on them
+    const channel = await User.aggregate([
+        {
+            $match:{//matching the username in the database
+                username: username?.toLowerCase() //it is used to match the username in the database
+            }
+        },
+        {//checking subscribers
+            $lookup: {//lookup is used to join two collections
+                from: "subscriptions", //the collection we want to join with(from subscription.model.js)
+                localField: "_id", //the field in the current collection
+                foreignField: "channel", //the field in the other collection(from subscription.model.js)
+                as: "subscribers" //the name of the field to add to the current collection
+            }
+        },
+         {//checking channels subscribed to
+            //this will give us the channels that the user is subscribed to
+            $lookup: {
+                from: "subscriptions", 
+                localField: "_id", 
+                foreignField: "subscriber", //(from subscription.model.js)
+                as: "subscriberdTo" 
+            }
+        },  
+        {
+            $addFields: { //adding new fields to the current collection
+                subscribersCount:{
+                    $size: "$subscribers" //adding a new field(so $) to the current collection
+                },
+                channelsSubscribedTOCount:{
+                    $size:"$subscriberdTo" //adding a new field to the current collection
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: {$in: [req.user?._id, "subscribers.subscriber"]},
+                        then:true,
+                        else:false
+              //if the user is logged in then it will have an id, 
+              //we will compare it with the subscriber's id in the subscribers array
+              //if it is present then it will return true(subscribed), else false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedTOCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email:1
+                //project is used to select the fields to return
+                //1 means include the field, 0 means exclude the field
+            }
+        }
+    ])
+
+    if(!channel?.length){
+        throw new ApiError(404,"channel does not exist")
+    }
+
+    return res//aggregate returns an array of objects
+    .status(200)
+    .json(
+        new ApiResponse(200, channel[0], "User Channel profile fetched successfully")
+    )//channel[0] is used to get the first object from the array
+})
+
 export {
     registerUser,
     loginUser,
@@ -375,7 +459,8 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile
 }
 
 //name,gmail,phone no,pass,address
