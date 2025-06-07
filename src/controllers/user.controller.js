@@ -450,6 +450,76 @@ const getUserChannelProfile = asyncHandler(async(req,res) => {
     )//channel[0] is used to get the first object from the array
 })
 
+const getWatchHistory = asyncHandler(async(req,res) => {
+    const user = await User.aggregate([
+        {
+            $match: { //we look for the user by their ID
+            _id: new mongoose.Types.ObjectId(req.user._id) //converting string to ObjectId
+    //req.user._id return a string, but we need to match it with ObjectId in the database
+    //generally we write only req.user._id because mongoose converts it to ObjectId automatically
+    // but here we are using aggregate so we need to convert it manually, it does not pass through
+    //  the mongoose middleware
+        }
+    },
+    {
+        $lookup: {
+            from: "videos", //the collection we want to join with(from video.model.js)
+            localField: "watchHistory", //the field in the current collection(user)
+            foreignField: "_id", //the field in the other collection(from video.model.js)
+            as: "watchHistory", //the name of the field to add to the current collection
+            pipeline:[
+                {
+                    $lookup: {//sub-lookup to get the owner of the video
+                        from:"users", //the collection we want to join with(from user.model.js)
+                        localFiels: "owner", //the field in the current collection(video)
+                        foreignField: "_id", //the field in the other collection(from user.model.js)
+                        as: "owner",//the name of the field to add to the current collection
+                        pipeline:[
+                            {
+                                $project: {//only selecting the fields we need to show for the owner
+                                    fullName: 1,//not selecting email and password,etc
+                                    username: 1,
+                                    avatar: 1
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    $addFields: { 
+                        owner: {//returning the first owner from the array as it returns an array
+                            $first: "$owner" //getting the first owner from the array
+                        }
+                //   new ApiResponse(200, channel[0],-earlier we used this to return the channel profile first object from the array
+                    }
+                }
+            ]
+        }
+    }
+    ])
+
+     return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user[0].watchHistory,
+            "Watch history fetched successfully"
+        )
+    )
+//Summary:
+//1. We match the user by their ID.
+//2. We use $lookup to join the user collection with the video collection and 
+// calculated the watch history.The result is a watchHistory array populated with full video documents.
+//3. Nested Lookup to Get Video Owner Info
+// For each video in the history, a sub-lookup fetches the video owner from the users collection.
+//4. Return Response
+// Sends back the populated watch history (with video and owner info)
+//  in the response body.
+
+
+})
+
 export {
     registerUser,
     loginUser,
@@ -460,7 +530,8 @@ export {
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getWatchHistory
 }
 
 //name,gmail,phone no,pass,address
